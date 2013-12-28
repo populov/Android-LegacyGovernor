@@ -1,3 +1,8 @@
 task wrapper(type: Wrapper) {
     gradleVersion = '1.9'
 }
+
+allprojects {
+    group = 'com.haunted.legacygovernor'
+    version = '0.1.0'
+}
