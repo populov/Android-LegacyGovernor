@@ -1,0 +1,83 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.7.+'
+    }
+}
+apply plugin: 'android-library'
+
+repositories {
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.1"
+
+    defaultConfig {
+        minSdkVersion 7
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+    release {
+        runProguard false
+        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+    }
+}
+
+dependencies {
+    compile 'com.android.support:support-v4:+@jar'
+    compile 'com.intellij:annotations:+@jar'
+}
+
+// Publish to maven repository
+
+task sourcesJar(type: Jar) {
+    classifier 'sources'
+    from android.sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://$buildDir/mvnRepo/")
+            pom.project {
+                artifactId 'LegacyGovernor'
+                name 'LegacyGovernor'
+                packaging 'jar'
+                description 'Forget about if (SDK_INT >= ...) ... else ...'
+                url 'http://github.com/populov/Android-MarketBin'
+                inceptionYear 2013
+
+                scm {
+                    url 'git@github.com:populov/Android-LegacyGovernor.git'
+                    connection 'git@github.com:populov/Android-LegacyGovernor.git'
+                    developerConnection 'git@github.com:populov/Android-LegacyGovernor.git'
+                }
+
+                licenses {
+                    license {
+                        name 'The MIT License (MIT)'
+                        url 'http://opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'Populov'
+                        name 'Serge Populov'
+                        email 'serge@populov.com'
+                    }
+                }
+            }
+        }
+    }
+}

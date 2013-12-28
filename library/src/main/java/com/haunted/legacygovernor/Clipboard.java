@@ -10,23 +10,23 @@ import android.widget.EditText;
 import org.jetbrains.annotations.NotNull;
 
 public class Clipboard {
-    public static void copyToClipboard(String domainUrl, Context context) {
+    public static void copyText(String text, Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
-            copyToClipboardOld(domainUrl, context);
+            copyToClipboardOld(text, context);
         else
-            copyToClipboardNew(domainUrl, context);
+            copyToClipboardNew(text, context);
     }
 
     @SuppressWarnings("deprecation")
-    private static void copyToClipboardOld(String domainUrl, Context context) {
+    private static void copyToClipboardOld(String text, Context context) {
         android.text.ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        clipboard.setText(domainUrl);
+        clipboard.setText(text);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    private static void copyToClipboardNew(String domainUrl, Context context) {
+    private static void copyToClipboardNew(String text, Context context) {
         android.content.ClipboardManager clipboard = (android.content.ClipboardManager)context.getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText(domainUrl, domainUrl);
+        ClipData clip = ClipData.newPlainText(text, text);
         clipboard.setPrimaryClip(clip);
     }
 
