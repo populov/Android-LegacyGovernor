@@ -11,6 +11,7 @@ buildscript {
 apply plugin: 'android-library'
 apply plugin: 'maven'
 apply plugin: 'save-ssd' // README at https://github.com/populov/gradle-save-ssd-plugin
+apply plugin: 'signing'
 
 repositories {
     mavenCentral()
@@ -22,7 +23,7 @@ android {
     buildToolsVersion "19.0.1"
 
     defaultConfig {
-        minSdkVersion 7
+        minSdkVersion 8
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
@@ -35,18 +36,26 @@ android {
 
 dependencies {
     compile 'com.intellij:annotations:+@jar'
-    compile 'com.seppius.plurals:android-i18n-plurals:1.0@aar'
+    compile 'com.seppius.plurals:android-i18n-plurals:1.+@aar'
 }
 
 // Publish to maven repository
 
-task sourcesJar(type: Jar) {
-    classifier 'sources'
-    from android.sourceSets.main.allSource
-}
+android.libraryVariants.all { variant ->
+    def name = variant.buildType.name
+    if (name.equals(com.android.builder.BuilderConstants.DEBUG)) {
+        return; // Skip debug builds.
+    }
 
-artifacts {
-    archives sourcesJar
+    def classesJar = project.tasks.create "jar${name.capitalize()}", Jar
+    classesJar.dependsOn variant.javaCompile
+    classesJar.from fileTree(dir: variant.javaCompile.destinationDir).matching { include 'com/haunted/legacygovernor/**' }
+    artifacts.add('archives', classesJar);
+
+    def sourcesJar = project.tasks.create "sources${name.capitalize()}", Jar
+    sourcesJar.classifier 'sources'
+    sourcesJar.from android.sourceSets.main.allSource
+    artifacts.add('archives', sourcesJar);
 }
 
 uploadArchives {
@@ -63,13 +72,13 @@ uploadArchives {
                 name 'LegacyGovernor'
                 packaging 'jar'
                 description 'Forget about if (SDK_INT >= ...) ... else ...'
-                url 'http://github.com/populov/Android-MarketBin'
+                url 'http://github.com/populov/Android-LegacyGovernor'
                 inceptionYear 2013
 
                 scm {
                     url 'git@github.com:populov/Android-LegacyGovernor.git'
-                    connection 'git@github.com:populov/Android-LegacyGovernor.git'
-                    developerConnection 'git@github.com:populov/Android-LegacyGovernor.git'
+                    connection 'scm:git:git@github.com:populov/Android-LegacyGovernor.git'
+                    developerConnection 'scm:git:git@github.com:populov/Android-LegacyGovernor.git'
                 }
 
                 licenses {
@@ -88,6 +97,21 @@ uploadArchives {
                     }
                 }
             }
+
+            beforeDeployment {
+                MavenDeployment deployment -> if (canSign())
+                    signing.signPom(deployment)
+            }
         }
     }
+}
+
+boolean canSign() {
+    return project.hasProperty("signing.secretKeyRingFile") &&
+           project.hasProperty("signing.keyId")
+}
+
+signing {
+    if (canSign())
+        sign configurations.archives
 }
