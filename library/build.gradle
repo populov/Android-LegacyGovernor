@@ -56,6 +56,24 @@ android.libraryVariants.all { variant ->
     sourcesJar.classifier 'sources'
     sourcesJar.from android.sourceSets.main.allSource
     artifacts.add('archives', sourcesJar);
+
+    Javadoc javadocCreate = task("generate${name.capitalize()}Javadoc", type: Javadoc) {
+        title = "$name $version API"
+        description "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.plugin.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+        options.links("http://docs.oracle.com/javase/7/docs/api/");
+        options.links("http://d.android.com/reference/");
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+
+    def docJar = project.tasks.create "jar${name.capitalize()}Javadoc", Jar
+    docJar.classifier 'javadoc'
+    docJar.dependsOn javadocCreate
+    docJar.from javadocCreate.destinationDir
+    artifacts.add('archives', docJar);
 }
 
 uploadArchives {
